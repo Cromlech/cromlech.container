@@ -2,7 +2,6 @@
 
 from zope.interface import implements
 from cromlech.container.contained import Contained, setitem, uncontained
-from cromlech.container.contained import notifyContainerModified
 from cromlech.container.interfaces import IContainer
 
 

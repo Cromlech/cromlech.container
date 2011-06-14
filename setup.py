@@ -3,6 +3,7 @@
 import os
 from setuptools import setup, find_packages
 
+
 def text(path):
     with open(path) as f:
         text = f.read()
@@ -44,7 +45,7 @@ setup(name='cromlech.container',
       license='ZPL',
       packages=find_packages('src', exclude=['ez_setup']),
       package_dir={'': 'src'},
-      namespace_packages=['cromlech',],
+      namespace_packages=['cromlech'],
       include_package_data=True,
       zip_safe=False,
       tests_require=tests_require,
