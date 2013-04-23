@@ -1,6 +1,12 @@
 Changelog
 =========
 
+1.0 (unreleased)
+----------------
+
+- Removed `Namechooser` and `dispatch_to_sublocations`. They proved to be useless.
+
+
 0.1 (2011-06-14)
 ----------------
 

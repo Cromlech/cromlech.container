@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 
-from cromlech.container import ZopeMessageFactory as _
 from zope.interface import Interface, Invalid
 from zope.interface.common.mapping import IItemMapping
 from zope.interface.common.mapping import IReadMapping, IEnumerableMapping
@@ -196,14 +195,14 @@ class IReservedNames(Interface):
     """
 
     reservedNames = Set(
-        title=_(u'Reserved Names'),
-        description=_(u'Names that are not allowed for addable content'),
+        title=u'Reserved Names',
+        description=u'Names that are not allowed for addable content',
         required=True,
         )
 
 
 class NameReserved(ValueError):
-    __doc__ = _("The name is reserved for this container")
+    __doc__ = "The name is reserved for this container"
 
 
 class UnaddableError(ContainerError):

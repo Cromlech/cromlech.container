@@ -4,10 +4,8 @@
 import sys
 import zope.schema
 from zope.dottedname.resolve import resolve
-from zope.interface import providedBy
-from cromlech.container import ZopeMessageFactory as _
-from cromlech.container.interfaces import (
-    IContainer, InvalidItemType, InvalidContainerType)
+from zope.interface import providedBy, implementer
+from .interfaces import IContainer, InvalidItemType, InvalidContainerType
 
 
 def checkObject(container, name, object):
@@ -44,8 +42,7 @@ def checkObject(container, name, object):
 
     if not containerProvided.extends(IContainer):
         # If it doesn't implement IContainer, it can't contain stuff.
-        raise TypeError(
-            _('Container is not a valid Zope container.'))
+        raise TypeError('Container is not a valid Zope container.')
 
 
 def checkFactory(container, name, factory):
@@ -130,6 +127,7 @@ class _TypesBased(object):
             self.types = types
 
 
+@implementer(IItemTypePrecondition)
 class ItemTypePrecondition(_TypesBased):
     """Specify a `__setitem__` precondition that restricts item types
 
@@ -137,9 +135,9 @@ class ItemTypePrecondition(_TypesBased):
 
     >>> class I1(zope.interface.Interface):
     ...     pass
+
     >>> class I2(zope.interface.Interface):
     ...     pass
-
 
     >>> precondition = ItemTypePrecondition(I1, I2)
 
@@ -176,8 +174,6 @@ class ItemTypePrecondition(_TypesBased):
     >>> precondition.factory(None, 'foo', factory)
 
     """
-
-    zope.interface.implements(IItemTypePrecondition)
 
     def __call__(self, container, name, object):
         for iface in self.types:
@@ -248,6 +244,7 @@ class IContainerTypesConstraint(zope.interface.Interface):
         """
 
 
+@implementer(IContainerTypesConstraint)
 class ContainerTypesConstraint(_TypesBased):
     """Constrain a container to be one of a number of types
 
@@ -272,8 +269,6 @@ class ContainerTypesConstraint(_TypesBased):
     True
 
     """
-
-    zope.interface.implements(IContainerTypesConstraint)
 
     def __call__(self, object):
         for iface in self.types:

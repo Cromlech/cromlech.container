@@ -1,55 +1,39 @@
 # -*- coding: utf-8 -*-
 
-import zope.component
-
-from zope.interface import implements
+from .interfaces import IContainerModifiedEvent
+from zope.interface import implementer, alsoProvides
 from zope.event import notify
+from zope.location import LocationProxy
 from zope.location.interfaces import IContained, ILocation, ISublocations
 from zope.lifecycleevent import (
     ObjectModifiedEvent, ObjectMovedEvent,
     ObjectAddedEvent, ObjectRemovedEvent)
 
-from zope.location import LocationProxy
-from cromlech.container import ZopeMessageFactory as _
-from cromlech.container.interfaces import (
-    INameChooser, IReservedNames, NameReserved, IContainerModifiedEvent)
 
-
+@implementer(IContained)
 class Contained(object):
     """Stupid mix-in that defines `__parent__` and `__name__` attributes.
     """
-    implements(IContained)
 
     __parent__ = __name__ = None
 
 
+@implementer(IContained)
 class ContainedProxy(LocationProxy):
-    implements(IContained)
+    pass
 
 
+@implementer(IContainerModifiedEvent)
 class ContainerModifiedEvent(ObjectModifiedEvent):
     """The container has been modified.
     """
-    implements(IContainerModifiedEvent)
+    pass
 
 
-def dispatchToSublocations(object, event):
-    """Dispatch an event to sublocations of a given object
-
-    When a move event happens for an object, it's important to notify
-    subobjects as well.
-    """
-    subs = ISublocations(object, None)
-    if subs is not None:
-        for sub in subs.sublocations():
-            for ignored in zope.component.subscribers((sub, event), None):
-                pass  # They do work in the adapter fetch
-
-
+@implementer(ISublocations)
 class ContainerSublocations(object):
     """Basic implementation of an `ISublocations`
     """
-    implements(ISublocations)
 
     def __init__(self, container):
         self.container = container
@@ -65,7 +49,7 @@ def containedEvent(object, container, name=None):
     """
     if not IContained.providedBy(object):
         if ILocation.providedBy(object):
-            zope.interface.alsoProvides(object, IContained)
+            alsoProvides(object, IContained)
         else:
             object = ContainedProxy(object)
 
@@ -161,71 +145,3 @@ def uncontained(object, container, name=None):
         pass
 
     notifyContainerModified(container)
-
-
-class NameChooser(object):
-
-    implements(INameChooser)
-
-    def __init__(self, context):
-        self.context = context
-
-    def checkName(self, name, object):
-
-        if isinstance(name, str):
-            name = unicode(name)
-        elif not isinstance(name, unicode):
-            raise TypeError("Invalid name type", type(name))
-
-        if not name:
-            raise ValueError(
-                _("An empty name was provided. Names cannot be empty."))
-
-        if name[:1] in '+@' or '/' in name:
-            raise ValueError(
-                _("Names cannot begin with '+' or '@' or contain '/'"))
-
-        reserved = IReservedNames(self.context, None)
-        if reserved is not None:
-            if name in reserved.reservedNames:
-                raise NameReserved(name)
-
-        if name in self.context:
-            raise KeyError(
-                _("The given name is already being used"))
-
-        return True
-
-    def chooseName(self, name, object):
-
-        container = self.context
-
-        # convert to unicode and remove checkName unallowed characters
-        try:
-            name = unicode(name)
-        except:
-            name = u''
-        name = name.replace('/', '-').lstrip('+@')
-
-        if not name:
-            name = unicode(object.__class__.__name__)
-
-        # for an existing name, append a number.
-        # We should keep client's os.path.extsep (not ours), we assume it's '.'
-        dot = name.rfind('.')
-        if dot >= 0:
-            suffix = name[dot:]
-            name = name[:dot]
-        else:
-            suffix = ''
-
-        n = name + suffix
-        i = 1
-        while n in container:
-            i += 1
-            n = name + u'-' + unicode(i) + suffix
-
-        # Make sure the name is valid.  We may have started with something bad.
-        self.checkName(n, object)
-
-        return n

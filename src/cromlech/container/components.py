@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
-from zope.interface import implements
-from cromlech.container.contained import Contained, setitem, uncontained
-from cromlech.container.interfaces import IContainer
+from zope.interface import implementer
+from .contained import Contained, setitem, uncontained
+from .interfaces import IContainer
 
 
 class Lazy(object):
@@ -25,10 +25,10 @@ class Lazy(object):
         return value
 
 
+@implementer(IContainer)
 class Container(Contained):
     """Non-persistent container.
     """
-    implements(IContainer)
 
     def __init__(self):
         self._data = self._create_container()

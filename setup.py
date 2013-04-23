@@ -9,21 +9,20 @@ def text(path):
         text = f.read()
     return text
 
-version = '0.1'
+
+version = '1.0-crom'
 readme = text(os.path.join('src', 'cromlech', 'container', 'README.txt'))
 history = text(os.path.join('docs', 'HISTORY.txt'))
 
+
 install_requires = [
     'setuptools',
-    'zope.interface',
-    'zope.component',
     'zope.dottedname',
     'zope.event',
-    'zope.i18nmessageid',
+    'zope.interface',
     'zope.lifecycleevent',
     'zope.location',
     'zope.schema',
-    'zope.size',
     ]
 
 tests_require = [
