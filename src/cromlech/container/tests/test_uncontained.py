@@ -7,18 +7,12 @@ from cromlech.container.contained import Contained, containedEvent, uncontained
 from zope.lifecycleevent.interfaces import IObjectModifiedEvent
 from zope.lifecycleevent.interfaces import IObjectRemovedEvent
 from zope.testing.cleanup import cleanUp
-from zope.component.eventtesting import getEvents, clearEvents
-from zope.component.testing import PlacelessSetup as CAPlacelessSetup
-from zope.component.eventtesting import PlacelessSetup as EventPlacelessSetup
 
 
 def setup_module(module):
-    CAPlacelessSetup().setUp()
-    EventPlacelessSetup().setUp()
-
+    pass
 
 def teardown_module(module):
-    clearEvents()
     cleanUp()
 
 

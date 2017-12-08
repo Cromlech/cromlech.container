@@ -10,6 +10,11 @@ from zope.lifecycleevent import (
     ObjectAddedEvent, ObjectRemovedEvent)
 
 
+import sys
+if sys.version > '3':
+    unicode = str
+
+
 @implementer(IContained)
 class Contained(object):
     """Stupid mix-in that defines `__parent__` and `__name__` attributes.

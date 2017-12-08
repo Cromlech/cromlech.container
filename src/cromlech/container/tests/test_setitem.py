@@ -7,13 +7,10 @@ published after the `object` has been added to the `container`.
 """
 
 import pytest
-import zope.component
-
 from zope.location import Location
 from zope.location.interfaces import IContained
-from zope.interface import Interface, implements
+from zope.interface import Interface, implementer
 from zope.testing.cleanup import cleanUp
-from zope.component.eventtesting import setUp, getEvents, clearEvents
 from zope.lifecycleevent.interfaces import (
     IObjectAddedEvent, IObjectMovedEvent, IObjectModifiedEvent)
 
@@ -25,8 +22,8 @@ class IItem(Interface):
     pass
 
 
+@implementer(IItem)
 class Item(Contained):
-    implements(IItem)
 
     def setAdded(self, event):
         self.added = event
@@ -44,9 +41,7 @@ def moved(obj, event):
 
 
 def setup_module(module):
-    setUp()
-    zope.component.provideHandler(added, [IItem, IObjectAddedEvent])
-    zope.component.provideHandler(moved, [IItem, IObjectMovedEvent])
+    pass
 
 
 def teardown_module(module):

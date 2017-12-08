@@ -29,8 +29,8 @@ constraint isn't satisfied:
    ...     __setitem__.precondition = preNoZ
 
    >>> from cromlech.container.interfaces import IContainer
-   >>> class C1(object):
-   ...     zope.interface.implements(I1, IContainer)
+   >>> @zope.interface.implementer(I1, IContainer)
+   ... class C1(object):
    ...     def __repr__(self):
    ...         return 'C1'
 
@@ -61,8 +61,9 @@ A field constraint is a callable object that returns a boolean value:
    >>> class I2(zope.interface.Interface):
    ...     __parent__ = zope.schema.Field(constraint = con1)
 
-   >>> class O(object):
-   ...     zope.interface.implements(I2)
+   >>> @zope.interface.implementer(I2)
+   ... class O(object):
+   ...    pass
 
 If the constraint isn't satisfied, we'll get a validation error when we
 check whether the object can be added:
@@ -85,8 +86,9 @@ aren't satisfied:
    >>> class I2(zope.interface.Interface):
    ...     __parent__ = zope.schema.Field(constraint = con1)
 
-   >>> class O(object):
-   ...     zope.interface.implements(I2)
+   >>> @zope.interface.implementer(I2)
+   ... class O(object):
+   ...     pass     
 
    >>> checkObject(c1, "bob", O())
    Traceback (most recent call last):
@@ -149,7 +151,6 @@ from cromlech.container.constraints import containers, contains
 from cromlech.container.interfaces import IContainer
 from cromlech.container.interfaces import InvalidContainerType, InvalidItemType
 from zope import interface
-from zope.component.factory import Factory
 from zope.location.interfaces import IContained, ILocation
 
 
@@ -169,22 +170,22 @@ class IBuddy(IContained):
 
 def test_contraints():
 
+    @interface.implementer(IBuddy)
     class Buddy:
-        interface.implements(IBuddy)
+        pass
 
+    @interface.implementer(IBuddyFolder)
     class BuddyFolder:
-        interface.implements(IBuddyFolder)
+        pass
 
     assert checkObject(BuddyFolder(), 'x', Buddy()) is None
-    assert checkFactory(BuddyFolder(), 'x', Factory(Buddy))
 
+    @interface.implementer(IContained)
     class Contained:
-        interface.implements(IContained)
+        pass
 
     with pytest.raises(InvalidContainerType):
         checkObject(Container(), 'x', Buddy())
-
-    assert not checkFactory(Container(), 'x', Factory(Buddy))
 
     with pytest.raises(InvalidItemType):
         checkObject(BuddyFolder(), 'x', Contained())
@@ -202,19 +203,19 @@ def test_constraints_order():
     """In the previous tests, we defined the container first and
     then the items.  We can define these in the opposite order.
     """
+    @interface.implementer(IContact)
     class Contact:
-        interface.implements(IContact)
-
+        pass
+        
+    @interface.implementer(IContacts)
     class Contacts:
-        interface.implements(IContacts)
+        pass
+        
 
     assert checkObject(Contacts(), 'x', Contact()) is None
-    assert checkFactory(Contacts(), 'x', Factory(Contact))
 
     with pytest.raises(InvalidItemType):
         checkObject(Contacts(), 'x', object())
-
-    assert not checkFactory(Contacts(), 'x', Factory(object))
 
 
 def test_moving_failure():

@@ -39,8 +39,9 @@ def test_declarations_on_ContainedProxy():
     class I1(zope.interface.Interface):
         pass
 
+    @zope.interface.implementer(I1)
     class C(object):
-        zope.interface.implements(I1)
+        pass
 
     c = C()
     p = ContainedProxy(c)
