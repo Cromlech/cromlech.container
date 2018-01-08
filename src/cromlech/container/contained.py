@@ -95,9 +95,9 @@ def setitem(container, setitemf, name, object):
     published after the `object` has been added to the `container`.
     """
     # Do basic name check:
-    if isinstance(name, str):
+    if isinstance(name, bytes):
         try:
-            name = unicode(name)
+            name = unicode(name, 'utf-8')
         except UnicodeError:
             raise TypeError("name not unicode or ascii string")
     elif not isinstance(name, unicode):
