@@ -10,7 +10,7 @@ def text(path):
     return text
 
 
-version = '1.0-crom'
+version = '1.0+crom'
 readme = text(os.path.join('src', 'cromlech', 'container', 'README.txt'))
 history = text(os.path.join('docs', 'HISTORY.txt'))
 
@@ -23,12 +23,11 @@ install_requires = [
     'zope.lifecycleevent',
     'zope.location',
     'zope.schema',
-    ]
+]
 
 tests_require = [
     'pytest',
-    'zope.testing',
-    ]
+]
 
 setup(name='cromlech.container',
       version=version,

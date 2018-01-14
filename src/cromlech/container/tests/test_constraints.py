@@ -39,7 +39,7 @@ added:
 
    >>> c1 = C1()
    >>> checkObject(c1, "bob", None)
-   >>> checkObject(c1, "Zbob", None)
+   >>> checkObject(c1, "Zbob", None)  # doctest: +IGNORE_EXCEPTION_DETAIL
    Traceback (most recent call last):
    ...
    Invalid: Names can not start with Z
@@ -68,7 +68,7 @@ A field constraint is a callable object that returns a boolean value:
 If the constraint isn't satisfied, we'll get a validation error when we
 check whether the object can be added:
 
-   >>> checkObject(c1, "bob", O())
+   >>> checkObject(c1, "bob", O())  # doctest: +IGNORE_EXCEPTION_DETAIL
    Traceback (most recent call last):
    ...
    ConstraintNotSatisfied: C1
@@ -90,7 +90,7 @@ aren't satisfied:
    ... class O(object):
    ...     pass     
 
-   >>> checkObject(c1, "bob", O())
+   >>> checkObject(c1, "bob", O())  # doctest: +IGNORE_EXCEPTION_DETAIL
    Traceback (most recent call last):
    ...
    Invalid: What, no x?

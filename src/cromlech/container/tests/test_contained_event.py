@@ -3,15 +3,6 @@
 from zope.location import Location
 from zope.location.interfaces import IContained
 from cromlech.container.contained import Contained, containedEvent
-from zope.testing.cleanup import cleanUp
-
-
-def setup_module(module):
-    pass
-
-
-def teardown_module(module):
-    cleanUp()
 
 
 def test_contained_event():

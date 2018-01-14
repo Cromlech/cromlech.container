@@ -154,10 +154,10 @@ class ItemTypePrecondition(_TypesBased):
 
     >>> factory = Factory()
 
-    >>> try:
-    ...     precondition(None, 'foo', ob)
+    >>> try:   # doctest: +IGNORE_EXCEPTION_DETAIL
+    ...     precondition(None, 'foo', ob) 
     ... except InvalidItemType as v:
-    ...     print(v[0], (v[1] is ob), (v[2] == (I1, I2)))
+    ...     print(v.args[0], (v.args[1] is ob), (v.args[2] == (I1, I2)))
     ... else:
     ...     print('Should have failed')
     None True True
@@ -165,7 +165,7 @@ class ItemTypePrecondition(_TypesBased):
     >>> try:
     ...     precondition.factory(None, 'foo', factory)
     ... except InvalidItemType as v:
-    ...     print(v[0], (v[1] is factory), (v[2] == (I1, I2)))
+    ...     print(v.args[0], (v.args[1] is factory), (v.args[2] == (I1, I2)))
     ... else:
     ...     print('Should have failed')
     None True True
@@ -211,7 +211,7 @@ def contains(*types):
 
     It is invalid to call contains outside a class suite:
 
-      >>> contains(IFoo, IBar)
+      >>> contains(IFoo, IBar)  # doctest: +IGNORE_EXCEPTION_DETAIL
       Traceback (most recent call last):
       ...
       TypeError: contains not called from suite
@@ -260,7 +260,7 @@ class ContainerTypesConstraint(_TypesBased):
     >>> try:
     ...     constraint(ob)
     ... except InvalidContainerType as v:
-    ...     print((v[0] is ob), (v[1] == (I1, I2)))
+    ...     print((v.args[0] is ob), (v.args[1] == (I1, I2)))
     ... else:
     ...     print('Should have failed')
     True True

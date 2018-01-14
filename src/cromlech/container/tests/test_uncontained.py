@@ -6,21 +6,13 @@ the `container`.
 from cromlech.container.contained import Contained, containedEvent, uncontained
 from zope.lifecycleevent.interfaces import IObjectModifiedEvent
 from zope.lifecycleevent.interfaces import IObjectRemovedEvent
-from zope.testing.cleanup import cleanUp
-
-
-def setup_module(module):
-    pass
-
-def teardown_module(module):
-    cleanUp()
 
 
 class Item(Contained):
     pass
 
 
-def test_uncontained():
+def test_uncontained(events):
     item = Item()
     container = {u'foo': item}
     x, event = containedEvent(item, container, u'foo')
@@ -32,29 +24,32 @@ def test_uncontained():
     assert item.__parent__ is None
     assert item.__name__ is None
 
-    assert len(getEvents(IObjectRemovedEvent)) == 1
+    assert len(events) == 2
 
-    event = getEvents(IObjectRemovedEvent)[-1]
+    event = events.popleft()
     assert event.object is item
     assert event.oldParent is container
     assert event.oldName == u'foo'
     assert event.newParent is None
     assert event.newName is None
 
-    assert len(getEvents(IObjectModifiedEvent)) == 1
-    assert getEvents(IObjectModifiedEvent)[-1].object is container
+    event = events.popleft()
+    assert event.object is container
 
     # Events are never triggered twice
     uncontained(item, container, u'foo')
-    assert len(getEvents(IObjectRemovedEvent)) == 1
-    assert len(getEvents(IObjectModifiedEvent)) == 1
+    assert not len(events)
 
+    # Name changed, uncontain will just trigger a modification
+    # on the container
     item.__parent__, item.__name__ = container, None
     uncontained(item, container, u'foo')
-    assert len(getEvents(IObjectRemovedEvent)) == 1
-    assert len(getEvents(IObjectModifiedEvent)) == 2
+    event = events.pop()
+    assert IObjectModifiedEvent.providedBy(event)
 
+    # Name and parent changed, uncontain will just trigger a modification
+    # on the container
     item.__parent__, item.__name__ = None, u'bar'
     uncontained(item, container, u'foo')
-    assert len(getEvents(IObjectRemovedEvent)) == 1
-    assert len(getEvents(IObjectModifiedEvent)) == 3
+    event = events.pop()
+    assert IObjectModifiedEvent.providedBy(event)

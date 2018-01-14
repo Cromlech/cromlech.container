@@ -10,11 +10,10 @@ import pytest
 from zope.location import Location
 from zope.location.interfaces import IContained
 from zope.interface import Interface, implementer
-from zope.testing.cleanup import cleanUp
 from zope.lifecycleevent.interfaces import (
     IObjectAddedEvent, IObjectMovedEvent, IObjectModifiedEvent)
 
-from cromlech.container.contained import setitem
+from cromlech.container.contained import setitem, ContainerModifiedEvent
 from cromlech.container.components import Contained
 
 
@@ -24,31 +23,10 @@ class IItem(Interface):
 
 @implementer(IItem)
 class Item(Contained):
-
-    def setAdded(self, event):
-        self.added = event
-
-    def setMoved(self, event):
-        self.moved = event
-
-
-def added(obj, event):
-    obj.setAdded(event)
-
-
-def moved(obj, event):
-    obj.setMoved(event)
-
-
-def setup_module(module):
     pass
 
 
-def teardown_module(module):
-    cleanUp()
-
-
-def test_setitem():
+def test_setitem(events):
 
     item = Item()
     container = {}
@@ -59,9 +37,9 @@ def test_setitem():
     assert item.__name__ == u'c'
 
     # We should get events
-    assert len(getEvents(IObjectAddedEvent)) == 1
+    assert len(events) == 2
 
-    event = getEvents(IObjectAddedEvent)[-1]
+    event = events.popleft()
     assert event.object is item
     assert event.newParent is container
     assert event.newName == u'c'
@@ -69,18 +47,10 @@ def test_setitem():
     assert event.oldName is None
 
     # As well as a modification event for the container
-    assert len(getEvents(IObjectModifiedEvent)) == 1
-    assert getEvents(IObjectModifiedEvent)[-1].object is container
-
-    # The item's hooks have been called:
-    assert item.added is event
-    assert item.moved is event
-
-    # we clean our test.
-    clearEvents()
+    assert events.popleft().object is container
 
 
-def test_no_event():
+def test_no_event(events):
     """We can suppress events and hooks by setting the `__parent__` and
     `__name__` first
     """
@@ -93,17 +63,13 @@ def test_no_event():
     setitem(container, container.__setitem__, u'c', item)
 
     assert len(container) == 1
-    assert len(getEvents(IObjectAddedEvent)) == 0
-    assert len(getEvents(IObjectModifiedEvent)) == 0
+    assert len(events) == 0
 
     assert getattr(item, 'added', None) is None
     assert getattr(item, 'moved', None) is None
 
-    # we clean our test.
-    clearEvents()
 
-
-def test_move_event():
+def test_move_event(events):
     """If the item had a parent or name (as in a move or rename),
     we generate a move event, rather than an add event.
     """
@@ -114,37 +80,28 @@ def test_move_event():
     setitem(container, container.__setitem__, u'c1', item)
 
     # Add operation are "moved" events.
-    assert len(getEvents(IObjectMovedEvent)) == 1
+    assert len(events) == 2
+    event = events.popleft()
+    assert IObjectAddedEvent.providedBy(event)
+    event = events.popleft()
+    assert IObjectModifiedEvent.providedBy(event)
+    assert isinstance(event, ContainerModifiedEvent)
 
     # We created an item already contained.
     item = Item()
     item.__parent__, item.__name__ = container, 'c2'
     setitem(container, container.__setitem__, u'c2', item)
-
-    assert len(container) == 2
-    assert len(getEvents(IObjectAddedEvent)) == 1
-    assert len(getEvents(IObjectModifiedEvent)) == 1
-    assert len(getEvents(IObjectMovedEvent)) == 1
+    assert not len(events)
 
     # We now rewrite 'c2' under another name
     # Thus, we created a move event : +1 modification +1 move.
     setitem(container, container.__setitem__, u'c3', item)
-
     assert len(container) == 3
-    assert len(getEvents(IObjectAddedEvent)) == 1
-    assert len(getEvents(IObjectModifiedEvent)) == 2
-    assert len(getEvents(IObjectMovedEvent)) == 2
-
-    # We also get the move hook called, but not the add hook:
-    event = getEvents(IObjectMovedEvent)[-1]
-    assert getattr(item, 'added', None) is None
-    assert item.moved is event
-
-    # we clean our test.
-    clearEvents()
+    event = events.popleft()
+    assert IObjectMovedEvent.providedBy(event)
 
 
-def test_replace():
+def test_replace(events):
     """If we try to replace an item without deleting it first, we'll get
     an error.
     """
@@ -162,14 +119,18 @@ def test_replace():
     del container[u'c']
     setitem(container, container.__setitem__, u'c', [])
 
-    assert len(getEvents(IObjectAddedEvent)) == 2
-    assert len(getEvents(IObjectModifiedEvent)) == 2
+    assert len(events) == 4
+    event = events.popleft()
+    assert IObjectAddedEvent.providedBy(event)
+    event = events.popleft()
+    assert IObjectModifiedEvent.providedBy(event)
+    event = events.popleft()
+    assert IObjectAddedEvent.providedBy(event)
+    event = events.popleft()
+    assert IObjectModifiedEvent.providedBy(event)
 
-    # we clean our test.
-    clearEvents()
-    
 
-def test_interface_providing():
+def test_interface_providing(events):
     """If the object implements `ILocation`, but not `IContained`, set it's
     `__parent__` and `__name__` attributes *and* declare that it
     implements `IContained`.
@@ -186,8 +147,11 @@ def test_interface_providing():
     assert IContained.providedBy(item)
 
     # We get added and modification events:
-    assert len(getEvents(IObjectAddedEvent)) == 1
-    assert len(getEvents(IObjectModifiedEvent)) == 1
+    assert len(events) == 2
+    event = events.popleft()
+    assert IObjectAddedEvent.providedBy(event)
+    event = events.popleft()
+    assert IObjectModifiedEvent.providedBy(event)
 
     # If the object doesn't even implement `ILocation`, put a
     # `ContainedProxy` around it:
@@ -201,11 +165,10 @@ def test_interface_providing():
     assert item.__name__ == u'i'
 
     assert IContained.providedBy(item)
-    assert len(getEvents(IObjectAddedEvent)) == 2
-    assert len(getEvents(IObjectModifiedEvent)) == 2
-
-    # we clean our test.
-    clearEvents()
+    event = events.popleft()
+    assert IObjectAddedEvent.providedBy(event)
+    event = events.popleft()
+    assert IObjectModifiedEvent.providedBy(event)
 
 
 def test_key_integrity():
